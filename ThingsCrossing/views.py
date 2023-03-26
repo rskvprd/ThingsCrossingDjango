@@ -1,5 +1,7 @@
 from django.shortcuts import render
 from rest_framework import viewsets
+from rest_framework.decorators import action
+from rest_framework.response import Response
 
 import ThingsCrossing.models as models
 import ThingsCrossing.serializers as serializers
@@ -9,7 +11,15 @@ class AdvertisementViewSet(viewsets.ModelViewSet):
     queryset = models.Advertisement.objects.all()
     serializer_class = serializers.AdvertisementSerializer
 
+    @action(detail=False, methods=['get'])
+    def search(self, request):
+        search_value = self.request.query_params.get("q")
+        searched_advertisement = models.Advertisement.objects.filter(title__contains=search_value)
+
+        serializer = self.get_serializer(searched_advertisement, many=True)
+        return Response(serializer.data)
+
 
 class PicturesViewSet(viewsets.ModelViewSet):
-    queryset = models.Pictures.objects.all()
+    queryset = models.Picture.objects.all()
     serializer_class = serializers.PicturesSerializer
