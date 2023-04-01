@@ -1,10 +1,24 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>$Title$</title>
+    <meta charset="UTF-8">
+    <title>form_test</title>
+    <link rel="stylesheet" type="text/css" href="{% static 'css/bootstrap.min.css' %}">
+    <script src="{% static 'js/form_test.js' %}"></script>
 </head>
 <body>
-$END$
+<form id="form">
+    <div class="input-group">
+        <label class="label" for="username">Username</label>
+        <input class="input-sm" type="text" id="username" name="username" placeholder="username" required>
+    </div>
+    <div class="input-group">
+        <label class="label" for="password">Password</label>
+        <input class="input-sm" type="text" id="password" name="password" placeholder="password" required>
+    </div>
+    <button type="submit" class="btn btn-success">Login</button>
+    <button type="reset" class="btn btn-danger">Reset form</button>
+</form>
 </body>
 </html>

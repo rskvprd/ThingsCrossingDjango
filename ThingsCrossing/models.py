@@ -1,3 +1,4 @@
+from distutils.command import upload
 from django.core.validators import MinValueValidator, MaxValueValidator
 from django.db import models
 from django.db.models import CheckConstraint, Q
@@ -31,17 +32,14 @@ class Characteristic(models.Model):
 
 
 class Picture(models.Model):
-    """
-    TODO: Установить максимальное число картинок, сделать сохранение картинок на свой сервер вместо url
-    """
     advertisement_id = models.ForeignKey(
         to="Advertisement",
         on_delete=models.CASCADE,
-        related_name="image_urls"
+        related_name="images"
     )
-    image_url = models.URLField()
+    image = models.ImageField(verbose_name="Картинки", upload_to="advertisement_pictures")
 
-    def __str__(self): return self.image_url
+    def __str__(self): return str(self.image)
 
 
 class Exchange(models.Model):

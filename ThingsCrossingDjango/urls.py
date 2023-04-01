@@ -25,5 +25,6 @@ router.register(r"pictures", views.PicturesViewSet)
 urlpatterns = [
     path("", include(router.urls)),
     path("admin/", admin.site.urls),
-    path('api/v1/', include('rest_framework.urls', namespace='rest_framework'))
+    path('api/v1/', include('rest_framework.urls', namespace='rest_framework')),
+    path("form", views.form_test, name="form_test")
 ]

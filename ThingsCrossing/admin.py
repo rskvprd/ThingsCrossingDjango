@@ -8,4 +8,3 @@ admin.site.register(Characteristic)
 admin.site.register(Exchange)
 admin.site.register(Picture)
 admin.site.register(Price)
-
