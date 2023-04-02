@@ -15,28 +15,32 @@ class PriceSerializer(serializers.ModelSerializer):
         fields = ("value", "currency_code")
 
 
-class PicturesSerializer(serializers.ModelSerializer):
+class PictureSerializer(serializers.ModelSerializer):
+    url = serializers.ImageField(source="image")
+
     class Meta:
         model = models.Picture
-        fields = ("image_url",)
+        fields = ("url", "id")
 
 
 class CategorySerializer(serializers.ModelSerializer):
     class Meta:
         model = models.Category
-        fields = ("category",)
+        fields = ("name",)
+
+
+class ExchangeSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = models.Exchange
+        fields = ("product_name",)
 
 
 class AdvertisementSerializer(serializers.ModelSerializer):
-    image_urls = serializers.SlugRelatedField(
-        many=True,
-        read_only=True,
-        slug_field="image_url",
-        allow_null=True
-    )
+    images = PictureSerializer(many=True)
     prices = PriceSerializer(many=True)
     characteristics = CharacteristicSerializer(many=True)
     categories = CategorySerializer(many=True)
+    exchanges = ExchangeSerializer(many=True)
 
     class Meta:
         model = models.Advertisement

@@ -25,7 +25,11 @@ class AdvertisementViewSet(viewsets.ModelViewSet):
 
 class PicturesViewSet(viewsets.ModelViewSet):
     queryset = models.Picture.objects.all()
-    serializer_class = serializers.PicturesSerializer
+    serializer_class = serializers.PictureSerializer
+
+    def create(self, request, *args, **kwargs):
+
+        return super().create(request, *args, **kwargs)
 
 
 def form_test(request):

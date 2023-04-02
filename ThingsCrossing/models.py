@@ -22,20 +22,22 @@ class Characteristic(models.Model):
     """
     value = models.CharField(max_length=255)
     name = models.CharField(max_length=255)
-    advertisement_id = models.ForeignKey(
+    advertisement = models.ForeignKey(
         to='Advertisement',
         on_delete=models.CASCADE,
         related_name="characteristics"
     )
+    
 
     def __str__(self): return f'{self.name}: {self.value}'
 
 
 class Picture(models.Model):
-    advertisement_id = models.ForeignKey(
+    advertisement = models.ForeignKey(
         to="Advertisement",
         on_delete=models.CASCADE,
-        related_name="images"
+        related_name="images",
+        blank=True,
     )
     image = models.ImageField(verbose_name="Картинки", upload_to="advertisement_pictures")
 
@@ -49,13 +51,13 @@ class Exchange(models.Model):
         ссылаться на ProductModel
     """
     product_name = models.CharField(max_length=255)
-    advertisement_id = models.ForeignKey(
+    advertisement = models.ForeignKey(
         to='Advertisement',
         on_delete=models.CASCADE,
-        related_name="exchange"
+        related_name="exchanges",
     )
 
-    def __str__(self): return f'{self.product_name} от {self.advertisement_id}'
+    def __str__(self): return f'{self.product_name} от {self.advertisement}'
 
 
 class Price(models.Model):
@@ -67,13 +69,13 @@ class Price(models.Model):
     ]
     value = models.FloatField(validators=[MinValueValidator(0.0), MaxValueValidator(10 ** 15)])
     currency_code = models.CharField(max_length=255, choices=CURRENCY_CODE_CHOICES)
-    advertisement_id = models.ForeignKey(to="Advertisement", on_delete=models.CASCADE, related_name="prices")
+    advertisement = models.ForeignKey(to="Advertisement", on_delete=models.CASCADE, related_name="prices")
 
     def __str__(self):
-        return f"{self.advertisement_id.title}: {self.value} {self.currency_code}"
+        return f"{self.advertisement.title}: {self.value} {self.currency_code}"
 
     class Meta:
-        unique_together = (("currency_code", "advertisement_id"),)
+        unique_together = (("currency_code", "advertisement"),)
         constraints = (
             CheckConstraint(
                 check=Q(value__gte=0.0) & Q(value__lte=10 ** 15),
@@ -83,11 +85,14 @@ class Price(models.Model):
 
 
 class Category(models.Model):
-    category = models.CharField(max_length=255)
-    advertisement_id = models.ForeignKey(
+    name = models.CharField(max_length=255)
+    advertisement = models.ForeignKey(
         to="Advertisement",
         on_delete=models.CASCADE,
         related_name="categories"
     )
+
+    class Meta:
+        verbose_name_plural = "Categories"
 
     def __str__(self): return self.category
