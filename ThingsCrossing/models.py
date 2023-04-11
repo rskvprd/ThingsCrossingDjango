@@ -5,6 +5,7 @@ from django.db.models import CheckConstraint, Q
 
 
 class Advertisement(models.Model):
+    in_search = models.BooleanField("Отображать в поиске", default=False)
     title = models.CharField(max_length=255)
     description = models.CharField(max_length=5000)
     address = models.CharField(max_length=2048)
@@ -27,7 +28,6 @@ class Characteristic(models.Model):
         on_delete=models.CASCADE,
         related_name="characteristics"
     )
-    
 
     def __str__(self): return f'{self.name}: {self.value}'
 
@@ -37,9 +37,12 @@ class Picture(models.Model):
         to="Advertisement",
         on_delete=models.CASCADE,
         related_name="images",
-        blank=True,
+        null=True,
     )
-    image = models.ImageField(verbose_name="Картинки", upload_to="advertisement_pictures")
+    image = models.ImageField(
+        verbose_name="Картинки",
+        upload_to="advertisement_pictures",
+    )
 
     def __str__(self): return str(self.image)
 
@@ -67,9 +70,12 @@ class Price(models.Model):
         (RU_RUBLE, "Rubles"),
         (US_DOLLAR, "Dollars"),
     ]
-    value = models.FloatField(validators=[MinValueValidator(0.0), MaxValueValidator(10 ** 15)])
-    currency_code = models.CharField(max_length=255, choices=CURRENCY_CODE_CHOICES)
-    advertisement = models.ForeignKey(to="Advertisement", on_delete=models.CASCADE, related_name="prices")
+    value = models.FloatField(
+        validators=[MinValueValidator(0.0), MaxValueValidator(10 ** 15)])
+    currency_code = models.CharField(
+        max_length=255, choices=CURRENCY_CODE_CHOICES)
+    advertisement = models.ForeignKey(
+        to="Advertisement", on_delete=models.CASCADE, related_name="prices")
 
     def __str__(self):
         return f"{self.advertisement.title}: {self.value} {self.currency_code}"
