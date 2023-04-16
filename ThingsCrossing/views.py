@@ -17,7 +17,7 @@ class AdvertisementViewSet(viewsets.ModelViewSet):
     def search(self, request):
         search_value = self.request.query_params.get("q")
         searched_advertisement = models.Advertisement.objects.filter(
-            title__contains=search_value)
+            title__contains=search_value, in_search=True)
 
         serializer = self.get_serializer(searched_advertisement, many=True)
         return Response(serializer.data)
@@ -28,12 +28,11 @@ class PicturesViewSet(viewsets.ModelViewSet):
     serializer_class = serializers.PictureSerializer
 
     def create(self, request, *args, **kwargs):
-
         return super().create(request, *args, **kwargs)
 
 
 def form_test(request):
-    if (request.method == "GET"):
+    if request.method == "GET":
         return render(request, "form_test.html")
 
     request_body = json.loads(request.body)
