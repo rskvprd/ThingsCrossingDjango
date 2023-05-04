@@ -5,7 +5,7 @@ from django.db.models import CheckConstraint, Q
 
 
 class Advertisement(models.Model):
-    in_search = models.BooleanField("Отображать в поиске", default=False)
+    in_search = models.BooleanField("Отображать в поиске", default=True)
     title = models.CharField(max_length=255)
     description = models.CharField(max_length=5000)
     address = models.CharField(max_length=2048)
