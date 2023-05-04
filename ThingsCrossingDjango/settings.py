@@ -36,8 +36,7 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "ThingsCrossing.apps.ThingsCrossingConfig",
-    "rest_framework",
-    "debug_toolbar",  # TODO: remove on prod
+    "rest_framework"
 ]
 
 MIDDLEWARE = [
@@ -47,8 +46,7 @@ MIDDLEWARE = [
     # "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
-    "django.middleware.clickjacking.XFrameOptionsMiddleware",
-    "debug_toolbar.middleware.DebugToolbarMiddleware",  # TODO: remove on prod
+    "django.middleware.clickjacking.XFrameOptionsMiddleware"
 ]
 
 ROOT_URLCONF = "ThingsCrossingDjango.urls"
@@ -125,9 +123,3 @@ MEDIA_ROOT = BASE_DIR / "media"
 
 # URL used to access the media
 MEDIA_URL = "/media/"
-
-# Internal ips for django-debug-toolbar
-INTERNAL_IPS = [
-    "127.0.0.1",
-    "192.168.50.26"
-]
