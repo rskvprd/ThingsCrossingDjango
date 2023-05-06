@@ -1,9 +1,6 @@
-from django.http import HttpResponse
-from django.shortcuts import render
 from rest_framework import viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
-from rest_framework import status
 
 import json
 import ThingsCrossing.models as models
@@ -19,7 +16,7 @@ class AdvertisementViewSet(viewsets.ModelViewSet):
         response = super().create(request, *args, **kwargs)
         response.data["images"] = images
         advertisement_id = response.data["id"]
-        
+
         for image in images:
             image_url = image['url']
             relative_image_url = "/".join(image_url.split("/")[4:])
@@ -44,19 +41,7 @@ class PicturesViewSet(viewsets.ModelViewSet):
     queryset = models.Picture.objects.all()
     serializer_class = serializers.PictureSerializer
 
-    def create(self, request, *args, **kwargs):
-        return super().create(request, *args, **kwargs)
 
-
-def form_test(request):
-    if request.method == "GET":
-        return render(request, "form_test.html")
-
-    request_body = json.loads(request.body)
-    print(request_body)
-    response = json.dumps({
-        "message": "You're succesfully logged in!"
-    })
-    return HttpResponse(
-        response,
-    )
+class UserProfileViewSet(viewsets.ModelViewSet):
+    queryset = models.UserProfile.objects.all()
+    serializer_class = serializers.UserProfileSerializer

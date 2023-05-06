@@ -1,11 +1,11 @@
-from distutils.command import upload
 from django.core.validators import MinValueValidator, MaxValueValidator
 from django.db import models
 from django.db.models import CheckConstraint, Q
+from django.contrib.auth.models import User
 
 
 class Advertisement(models.Model):
-    in_search = models.BooleanField("Отображать в поиске", default=True)
+    in_search = models.BooleanField("Show in search", default=True)
     title = models.CharField(max_length=255)
     description = models.CharField(max_length=5000)
     address = models.CharField(max_length=2048)
@@ -101,4 +101,12 @@ class Category(models.Model):
     class Meta:
         verbose_name_plural = "Categories"
 
-    def __str__(self): return self.category
+    def __str__(self): return self.name
+
+
+class UserProfile(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    avatar = models.ImageField(default="default_avatar.jpg", upload_to="profile_picture")
+
+    def __str__(self):
+        return self.user.username

@@ -81,7 +81,7 @@ class AdvertisementSerializer(serializers.ModelSerializer):
         removed_characteristics = old_characteristics - characteristics
         removed_categories = old_categories - categories
         removed_exchanges = old_exchanges - exchanges
-        
+
         # Delete removed records
         for price in removed_prices:
             price.delete()
@@ -101,9 +101,11 @@ class AdvertisementSerializer(serializers.ModelSerializer):
         for price in new_prices:
             models.Price.objects.create(advertisement=instance, **price)
         for category in new_categories:
-            models.Category.objects.create(advertisement=instance, **categories)
+            models.Category.objects.create(
+                advertisement=instance, **categories)
         for characteristic in new_characteristics:
-            models.Characteristic.objects.create(advertisement=instance, **characteristic)
+            models.Characteristic.objects.create(
+                advertisement=instance, **characteristic)
         for exchange in new_exchanges:
             models.Exchange.objects.create(advertisement=instance, **exchange)
 
@@ -116,3 +118,14 @@ class AdvertisementSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.Advertisement
         fields = "__all__"
+
+
+class UserProfileSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = models.UserProfile
+        fields = "__all__"
+
+    def create(self, validated_data):
+        user = models.User.objects.create_user(**validated_data)
+        profile = models.UserProfile.objects.create(user=user)
+        return profile

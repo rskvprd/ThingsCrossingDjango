@@ -1,5 +1,4 @@
 from django.contrib import admin
-from django.apps import apps
 
 from ThingsCrossing.models import *
 
@@ -9,3 +8,4 @@ admin.site.register(Exchange)
 admin.site.register(Picture)
 admin.site.register(Price)
 admin.site.register(Category)
+admin.site.register(UserProfile)
