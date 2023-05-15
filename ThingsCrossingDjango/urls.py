@@ -9,11 +9,13 @@ from rest_framework.authtoken.views import obtain_auth_token
 router = routers.DefaultRouter()
 router.register(r"advertisement", views.AdvertisementViewSet)
 router.register(r"pictures", views.PicturesViewSet)
-# router.register(r"users", views.)
+router.register(r"users", views.UserProfileViewSet)
 
 urlpatterns = [
     path("", include(router.urls)),
     path("admin/", admin.site.urls),
     path("auth/", include('rest_framework.urls', namespace='rest_framework')),
-    path("obtain-auth-token/", obtain_auth_token, name="obtain_auth_token")
+    path("obtain-auth-token/", obtain_auth_token, name="obtain_auth_token"),
+    path("register/", views.RegisterUser.as_view()),
+
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

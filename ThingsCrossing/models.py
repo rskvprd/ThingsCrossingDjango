@@ -66,9 +66,14 @@ class Exchange(models.Model):
 class Price(models.Model):
     RU_RUBLE = "RUB"
     US_DOLLAR = "USD"
+    KZ_TENGE = "KZT"
+    UA_HRYVNIA = "UAH"
+
     CURRENCY_CODE_CHOICES = [
-        (RU_RUBLE, "Rubles"),
-        (US_DOLLAR, "Dollars"),
+        (RU_RUBLE, "RU Rubles"),
+        (US_DOLLAR, "US Dollars"),
+        (KZ_TENGE, "KZ Tenge"),
+        (UA_HRYVNIA, "UA Hryvnia"),
     ]
     value = models.FloatField(
         validators=[MinValueValidator(0.0), MaxValueValidator(10 ** 15)])
@@ -106,7 +111,7 @@ class Category(models.Model):
 
 class UserProfile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
-    avatar = models.ImageField(default="default_avatar.jpg", upload_to="profile_picture")
+    avatar = models.ImageField(default="profile_picture/default_avatar.jpg", upload_to="profile_picture")
 
     def __str__(self):
         return self.user.username

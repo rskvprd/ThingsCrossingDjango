@@ -120,12 +120,17 @@ class AdvertisementSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
 
+class UserSerializer(serializers.ModelSerializer):
+    password = serializers.CharField(write_only=True)
+
+    class Meta:
+        model = models.User
+        fields = "__all__"
+
+
 class UserProfileSerializer(serializers.ModelSerializer):
+    user = UserSerializer()
+
     class Meta:
         model = models.UserProfile
         fields = "__all__"
-
-    def create(self, validated_data):
-        user = models.User.objects.create_user(**validated_data)
-        profile = models.UserProfile.objects.create(user=user)
-        return profile
