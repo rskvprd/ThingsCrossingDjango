@@ -11,6 +11,11 @@ class Advertisement(models.Model):
     address = models.CharField(max_length=2048)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+    user_profile = models.ForeignKey(
+        to="UserProfile",
+        on_delete=models.CASCADE,
+        related_name="user_profile"
+    )
 
     def __str__(self): return self.title
 
@@ -111,7 +116,8 @@ class Category(models.Model):
 
 class UserProfile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
-    avatar = models.ImageField(default="profile_picture/default_avatar.jpg", upload_to="profile_picture")
+    avatar = models.ImageField(
+        default="profile_picture/default_avatar.jpg", upload_to="profile_picture")
 
     def __str__(self):
         return self.user.username

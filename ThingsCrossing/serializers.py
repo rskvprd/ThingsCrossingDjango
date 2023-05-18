@@ -3,6 +3,22 @@ from rest_framework import serializers
 import ThingsCrossing.models as models
 
 
+class UserSerializer(serializers.ModelSerializer):
+    password = serializers.CharField(write_only=True)
+
+    class Meta:
+        model = models.User
+        fields = "__all__"
+
+
+class UserProfileSerializer(serializers.ModelSerializer):
+    user = UserSerializer()
+
+    class Meta:
+        model = models.UserProfile
+        fields = "__all__"
+
+
 class CharacteristicSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.Characteristic
@@ -41,14 +57,16 @@ class AdvertisementSerializer(serializers.ModelSerializer):
     characteristics = CharacteristicSerializer(many=True)
     categories = CategorySerializer(many=True)
     exchanges = ExchangeSerializer(many=True)
+    user_profile = UserProfileSerializer(many=False, read_only=True)
 
     def create(self, validated_data):
         prices = validated_data.pop("prices")
         characteristics = validated_data.pop("characteristics")
         categories = validated_data.pop("categories")
         exchanges = validated_data.pop("exchanges")
+        profile = models.UserProfile.objects.get(user=self.context['request'].user)
 
-        advertisement = models.Advertisement.objects.create(**validated_data)
+        advertisement = models.Advertisement.objects.create(**validated_data, user_profile=profile)
         for category in categories:
             models.Category.objects.create(
                 advertisement=advertisement, **category)
@@ -117,20 +135,4 @@ class AdvertisementSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = models.Advertisement
-        fields = "__all__"
-
-
-class UserSerializer(serializers.ModelSerializer):
-    password = serializers.CharField(write_only=True)
-
-    class Meta:
-        model = models.User
-        fields = "__all__"
-
-
-class UserProfileSerializer(serializers.ModelSerializer):
-    user = UserSerializer()
-
-    class Meta:
-        model = models.UserProfile
         fields = "__all__"
