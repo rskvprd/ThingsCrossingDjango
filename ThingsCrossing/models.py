@@ -121,3 +121,56 @@ class UserProfile(models.Model):
 
     def __str__(self):
         return self.user.username
+
+
+class Message(models.Model):
+    from_user = models.ForeignKey(
+        to=UserProfile,
+        on_delete=models.CASCADE,
+        related_name="from_user"
+    )
+
+    to_user = models.ForeignKey(
+        to=UserProfile,
+        on_delete=models.CASCADE,
+        related_name="to_user"
+    )
+
+    room = models.ForeignKey(
+        to="Room",
+        on_delete=models.CASCADE,
+    )
+    
+    text = models.CharField(max_length=3000)
+
+    sent_date_time = models.DateTimeField(auto_now=True)
+
+
+class Room(models.Model):
+    GROUP = "group"
+    PRIVATE = "private"
+
+    TYPE_CHOICES = [
+        (GROUP, "Group"),
+        (PRIVATE, "Private")
+    ]
+
+    type = models.CharField(
+        max_length=255,
+        choices=TYPE_CHOICES,
+        default=PRIVATE
+    )
+    name = models.CharField(max_length=255, null=True, blank=True)
+
+
+class Participant(models.Model):
+    room = models.ForeignKey(
+        to="Room",
+        on_delete=models.CASCADE,
+        related_name="room"
+    )
+    participant = models.ForeignKey(
+        to="UserProfile",
+        on_delete=models.CASCADE,
+        related_name="participant"
+    )

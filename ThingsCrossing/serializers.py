@@ -6,13 +6,28 @@ import ThingsCrossing.models as models
 class UserSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True)
 
+    def create(self, validated_data):
+
+        user = models.User.objects.create_user(
+            username=validated_data['username'],
+            password=validated_data['password'],
+            email=validated_data['email'],
+            first_name=validated_data['first_name'],
+            last_name=validated_data['last_name']
+        )
+
+        return user
+
     class Meta:
         model = models.User
         fields = "__all__"
+        extra_kwargs = {
+            'password': {'write_only': True}
+        }
 
 
 class UserProfileSerializer(serializers.ModelSerializer):
-    user = UserSerializer()
+    user = UserSerializer(many=False)
 
     class Meta:
         model = models.UserProfile
@@ -45,6 +60,24 @@ class CategorySerializer(serializers.ModelSerializer):
         fields = ("name",)
 
 
+class MessageSerializer(serializers.ModelSerializer):
+    from_user = UserProfileSerializer(many=False, read_only=True)
+    to_user = UserProfileSerializer(many=False, read_only=True)
+
+    class Meta:
+        model = models.Message
+        fields = ("__all__")
+
+    def create(self, validated_data):
+        user = self.context['request'].user
+        from_user = models.UserProfile.objects.get(user=user)
+
+        to_user = self.initial_data["to_user"]
+        to_user = models.UserProfile.objects.get(pk=to_user)
+
+        return models.Message.objects.create(**validated_data, from_user=from_user, to_user=to_user)
+
+
 class ExchangeSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.Exchange
@@ -64,9 +97,11 @@ class AdvertisementSerializer(serializers.ModelSerializer):
         characteristics = validated_data.pop("characteristics")
         categories = validated_data.pop("categories")
         exchanges = validated_data.pop("exchanges")
-        profile = models.UserProfile.objects.get(user=self.context['request'].user)
+        profile = models.UserProfile.objects.get(
+            user=self.context['request'].user)
 
-        advertisement = models.Advertisement.objects.create(**validated_data, user_profile=profile)
+        advertisement = models.Advertisement.objects.create(
+            **validated_data, user_profile=profile)
         for category in categories:
             models.Category.objects.create(
                 advertisement=advertisement, **category)
@@ -136,3 +171,15 @@ class AdvertisementSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.Advertisement
         fields = "__all__"
+
+
+class RoomSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = models.Room
+        fields = ("__all__")
+
+
+class ParticipantSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = models.Participant
+        fields = ("__all__")

@@ -19,11 +19,11 @@ class AdvertisementViewSet(viewsets.ModelViewSet):
 
     def create(self, request, *args, **kwargs):
         images = json.loads(request.body)["images"]
-   
+
         response = super().create(request, *args, **kwargs)
         response.data["images"] = images
         advertisement_id = response.data["id"]
-        
+
         for image in images:
             image_url = image['url']
             relative_image_url = "/".join(image_url.split("/")[4:])
@@ -41,7 +41,7 @@ class AdvertisementViewSet(viewsets.ModelViewSet):
         is_ascending = is_ascending == "true"
 
         searched_advertisement = models.Advertisement.objects.filter(
-                    title__contains=search_value, in_search=True)
+            title__contains=search_value, in_search=True)
 
         sorted_advertisement = None
 
@@ -49,7 +49,8 @@ class AdvertisementViewSet(viewsets.ModelViewSet):
             if is_ascending:
                 sorted_advertisement = searched_advertisement.order_by("title")
             else:
-                sorted_advertisement = searched_advertisement.order_by("-title")
+                sorted_advertisement = searched_advertisement.order_by(
+                    "-title")
         elif sort_by == "price":
             if is_ascending:
                 sorted_advertisement = searched_advertisement
@@ -57,10 +58,11 @@ class AdvertisementViewSet(viewsets.ModelViewSet):
                 sorted_advertisement = searched_advertisement
         else:
             if is_ascending:
-                sorted_advertisement = searched_advertisement.order_by("updated_at")
+                sorted_advertisement = searched_advertisement.order_by(
+                    "updated_at")
             else:
-                sorted_advertisement = searched_advertisement.order_by("-updated_at")
-        
+                sorted_advertisement = searched_advertisement.order_by(
+                    "-updated_at")
 
         print(f"{sort_by=} {is_ascending=} {search_value=}", )
         print(f"{sorted_advertisement=}")
@@ -68,11 +70,14 @@ class AdvertisementViewSet(viewsets.ModelViewSet):
         serializer = self.get_serializer(sorted_advertisement, many=True)
         data = serializer.data
         if sort_by == "price":
-            print([data[i]['prices'][0] if data[i]['prices'] else None for i in range(len(data))])
+            print([data[i]['prices'][0] if data[i]['prices']
+                  else None for i in range(len(data))])
             if is_ascending:
-                data = sorted(data, key=lambda ad: ad['prices'][0]['value'] if ad['prices'] else 0)
+                data = sorted(
+                    data, key=lambda ad: ad['prices'][0]['value'] if ad['prices'] else 0)
             else:
-                data = sorted(data, key=lambda ad: -ad['prices'][0]['value'] if ad['prices'] else 0)
+                data = sorted(data, key=lambda ad: -
+                              ad['prices'][0]['value'] if ad['prices'] else 0)
 
         return Response(data)
 
@@ -91,9 +96,7 @@ class UserProfileViewSet(viewsets.ModelViewSet):
         token = json.loads(request.body)['token']
 
         user = get_object_or_404(Token.objects, key=token).user
-        print(f'{user=}')
         user_profile = get_object_or_404(models.UserProfile.objects, user=user)
-        print(f'{user_profile=}')
         serializer = self.get_serializer(user_profile)
         return Response(serializer.data)
 
@@ -103,6 +106,7 @@ class RegisterUser(generics.CreateAPIView):
     serializer_class = serializers.UserSerializer
 
     def post(self, request, *args, **kwargs):
+        print(request.data)
         user_serializer: serializers.UserSerializer = self.get_serializer(
             data=request.data)
         user_serializer.is_valid(raise_exception=True)
@@ -111,8 +115,8 @@ class RegisterUser(generics.CreateAPIView):
         token = Token.objects.create(user=user)
 
         profile = models.UserProfile.objects.create(user=user)
-        profile_serializer = serializers.UserProfileSerializer(
-            instance=profile)
+
+        profile_serializer = serializers.UserProfileSerializer(profile)
 
         response_data = {
             'user': user_serializer.data,
@@ -120,3 +124,19 @@ class RegisterUser(generics.CreateAPIView):
             'profile': profile_serializer.data,
         }
         return Response(response_data)
+
+
+class MessageViewSet(viewsets.ModelViewSet):
+    queryset = models.Message.objects.all()
+    serializer_class = serializers.MessageSerializer
+    permission_classes = (IsAuthenticated,)
+
+    @action(methods=['post'], detail=False)
+    def with_user(self, request):
+        from_user = models.UserProfile.objects.get(user=request.user)
+        to_user = json.loads(request.body)["to_user"]
+
+        messages = self.queryset.filter(from_user=from_user, to_user=to_user)
+
+        serializer = self.get_serializer(messages, many=True)
+        return Response(serializer.data)
