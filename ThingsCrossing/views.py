@@ -64,14 +64,9 @@ class AdvertisementViewSet(viewsets.ModelViewSet):
                 sorted_advertisement = searched_advertisement.order_by(
                     "-updated_at")
 
-        print(f"{sort_by=} {is_ascending=} {search_value=}", )
-        print(f"{sorted_advertisement=}")
-
         serializer = self.get_serializer(sorted_advertisement, many=True)
         data = serializer.data
         if sort_by == "price":
-            print([data[i]['prices'][0] if data[i]['prices']
-                  else None for i in range(len(data))])
             if is_ascending:
                 data = sorted(
                     data, key=lambda ad: ad['prices'][0]['value'] if ad['prices'] else 0)
@@ -106,7 +101,6 @@ class RegisterUser(generics.CreateAPIView):
     serializer_class = serializers.UserSerializer
 
     def post(self, request, *args, **kwargs):
-        print(request.data)
         user_serializer: serializers.UserSerializer = self.get_serializer(
             data=request.data)
         user_serializer.is_valid(raise_exception=True)
@@ -131,6 +125,26 @@ class MessageViewSet(viewsets.ModelViewSet):
     serializer_class = serializers.MessageSerializer
     permission_classes = (IsAuthenticated,)
 
+    def create(self, request, *args, **kwargs):
+        room_id = request.data["room"]
+        room = models.Room.objects.get(pk=room_id)
+        text = request.data["text"]
+        from_user = models.UserProfile.objects.get(user=request.user)
+
+        message = models.Message.objects.create(from_user=from_user, room=room, text=text)
+        message_serializer = serializers.MessageSerializer(message)
+
+        return Response(message_serializer.data)
+
+    @action(methods=['post'], detail=False, url_path="by-room")
+    def by_room(self, request):
+        room_id = request.data["room"]
+        room = models.Room.objects.get(pk=room_id)
+        messages = models.Message.objects.filter(room=room)
+        messages_serializer = serializers.MessageSerializer(
+            messages, many=True)
+        return Response(messages_serializer.data)
+
     @action(methods=['post'], detail=False)
     def with_user(self, request):
         from_user = models.UserProfile.objects.get(user=request.user)
@@ -140,3 +154,41 @@ class MessageViewSet(viewsets.ModelViewSet):
 
         serializer = self.get_serializer(messages, many=True)
         return Response(serializer.data)
+
+
+class RoomViewSet(viewsets.ModelViewSet):
+    queryset = models.Message.objects.all()
+    serializer_class = serializers.MessageSerializer
+    permission_classes = (IsAuthenticated,)
+
+    def list(self, request, *args, **kwargs):
+        current_user = request.user
+        current_user_profile = models.UserProfile.objects.get(
+            user=current_user)
+        my_participants = models.Participant.objects.filter(
+            participant=current_user_profile)
+        rooms = sorted(map(lambda p: p.room, my_participants),
+                       key=lambda x: x.last_message_datetime)
+        serialized_rooms = serializers.RoomSerializer(rooms, many=True)
+
+        return Response(serialized_rooms.data)
+
+    @action(methods=['post'], detail=False)
+    def private(self, request):
+        me = models.UserProfile.objects.get(
+            user=request.user)
+
+        companion_id = request.data["companion_id"]
+        companion = models.UserProfile.objects.get(pk=companion_id)
+
+        participants = {companion, me}
+
+        models.Participant.objects.get()
+
+        room = models.Room.objects.get_or_create(
+            type="private", name=f"{companion.user.first_name} {companion.user.last_name}", participants=participants)
+        
+        models.Participant.objects.create(room=room, participant=companion)
+        models.Participant.objects.create(room=room, participant=me)
+
+        return Response(serializers.RoomSerializer(instance=room).data)

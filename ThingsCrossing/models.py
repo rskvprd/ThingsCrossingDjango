@@ -133,7 +133,9 @@ class Message(models.Model):
     to_user = models.ForeignKey(
         to=UserProfile,
         on_delete=models.CASCADE,
-        related_name="to_user"
+        related_name="to_user",
+        null=True,
+        blank=True
     )
 
     room = models.ForeignKey(
@@ -160,6 +162,7 @@ class Room(models.Model):
         choices=TYPE_CHOICES,
         default=PRIVATE
     )
+    last_message_datetime = models.DateTimeField(auto_now=True)
     name = models.CharField(max_length=255, null=True, blank=True)
 
 
@@ -167,7 +170,7 @@ class Participant(models.Model):
     room = models.ForeignKey(
         to="Room",
         on_delete=models.CASCADE,
-        related_name="room"
+        related_name="participants"
     )
     participant = models.ForeignKey(
         to="UserProfile",

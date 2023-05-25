@@ -10,7 +10,8 @@ router = routers.DefaultRouter()
 router.register(r"advertisement", views.AdvertisementViewSet)
 router.register(r"pictures", views.PicturesViewSet)
 router.register(r"users", views.UserProfileViewSet)
-router.register(r"message", viewset=views.MessageViewSet)
+router.register(r"message", views.MessageViewSet)
+router.register(r"room", views.RoomViewSet)
 
 urlpatterns = [
     path("", include(router.urls)),

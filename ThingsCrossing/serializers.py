@@ -26,12 +26,7 @@ class UserSerializer(serializers.ModelSerializer):
         }
 
 
-class UserProfileSerializer(serializers.ModelSerializer):
-    user = UserSerializer(many=False)
 
-    class Meta:
-        model = models.UserProfile
-        fields = "__all__"
 
 
 class CharacteristicSerializer(serializers.ModelSerializer):
@@ -53,6 +48,13 @@ class PictureSerializer(serializers.ModelSerializer):
         model = models.Picture
         fields = ("url", "id")
 
+class UserProfileSerializer(serializers.ModelSerializer):
+    user = UserSerializer(many=False)
+    avatar = serializers.ImageField(use_url=True)
+
+    class Meta:
+        model = models.UserProfile
+        fields = "__all__"
 
 class CategorySerializer(serializers.ModelSerializer):
     class Meta:
@@ -67,15 +69,6 @@ class MessageSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.Message
         fields = ("__all__")
-
-    def create(self, validated_data):
-        user = self.context['request'].user
-        from_user = models.UserProfile.objects.get(user=user)
-
-        to_user = self.initial_data["to_user"]
-        to_user = models.UserProfile.objects.get(pk=to_user)
-
-        return models.Message.objects.create(**validated_data, from_user=from_user, to_user=to_user)
 
 
 class ExchangeSerializer(serializers.ModelSerializer):
@@ -173,13 +166,16 @@ class AdvertisementSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
 
-class RoomSerializer(serializers.ModelSerializer):
+class ParticipantSerializer(serializers.ModelSerializer):
+    participant = UserProfileSerializer()
     class Meta:
-        model = models.Room
+        model = models.Participant
         fields = ("__all__")
 
 
-class ParticipantSerializer(serializers.ModelSerializer):
+class RoomSerializer(serializers.ModelSerializer):
+    participants = ParticipantSerializer(many=True)
+
     class Meta:
-        model = models.Participant
+        model = models.Room
         fields = ("__all__")
