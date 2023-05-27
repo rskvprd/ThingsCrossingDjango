@@ -72,7 +72,7 @@ class AdvertisementViewSet(viewsets.ModelViewSet):
                     data, key=lambda ad: ad['prices'][0]['value'] if ad['prices'] else 0)
             else:
                 data = sorted(data, key=lambda ad: -
-                              ad['prices'][0]['value'] if ad['prices'] else 0)
+                ad['prices'][0]['value'] if ad['prices'] else 0)
 
         return Response(data)
 
@@ -138,8 +138,7 @@ class MessageViewSet(viewsets.ModelViewSet):
 
     @action(methods=['post'], detail=False, url_path="by-room")
     def by_room(self, request):
-        room_id = request.data["room"]
-        room = models.Room.objects.get(pk=room_id)
+        room = request.data['id']
         messages = models.Message.objects.filter(room=room)
         messages_serializer = serializers.MessageSerializer(
             messages, many=True)
@@ -173,6 +172,8 @@ class RoomViewSet(viewsets.ModelViewSet):
 
         return Response(serialized_rooms.data)
 
+    """Get or create private room with two users"""
+
     @action(methods=['post'], detail=False)
     def private(self, request):
         me = models.UserProfile.objects.get(
@@ -181,14 +182,30 @@ class RoomViewSet(viewsets.ModelViewSet):
         companion_id = request.data["companion_id"]
         companion = models.UserProfile.objects.get(pk=companion_id)
 
-        participants = {companion, me}
+        room = self.find_private_room(me, companion)
 
-        models.Participant.objects.get()
+        if room:
+            return Response(serializers.RoomSerializer(instance=room).data)
 
-        room = models.Room.objects.get_or_create(
-            type="private", name=f"{companion.user.first_name} {companion.user.last_name}", participants=participants)
-        
+        room = models.Room.objects.create(type="private")
+
         models.Participant.objects.create(room=room, participant=companion)
         models.Participant.objects.create(room=room, participant=me)
 
         return Response(serializers.RoomSerializer(instance=room).data)
+
+    def find_private_room(self, user: models.UserProfile, other_user: models.UserProfile) -> models.Room | None:
+        user_rooms = set(self.get_rooms_by_user_profile(user))
+        other_user_rooms = set(self.get_rooms_by_user_profile(other_user))
+
+        mutual_room = list(filter(lambda r: r.type == "private", user_rooms & other_user_rooms))
+        assert len(mutual_room) <= 1, """There's can't be more than one private room between 2 users"""
+
+        return mutual_room[0] if mutual_room else None
+
+    def get_rooms_by_user_profile(self, user_profile: models.UserProfile):
+        my_participants = models.Participant.objects.filter(
+            participant=user_profile)
+        rooms = sorted(map(lambda p: p.room, my_participants),
+                       key=lambda x: x.last_message_datetime)
+        return rooms
