@@ -173,12 +173,7 @@ class RoomViewSet(viewsets.ModelViewSet):
         current_user = request.user
         current_user_profile = models.UserProfile.objects.get(
             user=current_user)
-        my_participants = models.Participant.objects.filter(
-            participant=current_user_profile)
-        rooms = sorted(map(lambda p: p.room, my_participants),
-                       key=lambda x:
-                       x.last_message.sent_date_time.replace(tzinfo=UTC)
-                       if x.last_message else datetime.datetime.min.replace(tzinfo=UTC))
+        rooms = self.get_rooms_by_user_profile(current_user_profile)
         serialized_rooms = serializers.RoomSerializer(rooms, many=True)
 
         return Response(serialized_rooms.data)
@@ -218,5 +213,7 @@ class RoomViewSet(viewsets.ModelViewSet):
         my_participants = models.Participant.objects.filter(
             participant=user_profile)
         rooms = sorted(map(lambda p: p.room, my_participants),
-                       key=lambda x: x.last_message_datetime)
+                       key=lambda x:
+                       x.last_message.sent_date_time.replace(tzinfo=UTC)
+                       if x.last_message else datetime.datetime.min.replace(tzinfo=UTC))
         return rooms
