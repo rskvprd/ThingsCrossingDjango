@@ -147,7 +147,7 @@ class MessageViewSet(viewsets.ModelViewSet):
 
     @action(methods=['post'], detail=False, url_path="by-room")
     def by_room(self, request):
-        room = request.data['id']
+        room = request.data
         messages = models.Message.objects.filter(room=room)
         messages_serializer = serializers.MessageSerializer(
             messages, many=True)
@@ -215,5 +215,5 @@ class RoomViewSet(viewsets.ModelViewSet):
         rooms = sorted(map(lambda p: p.room, my_participants),
                        key=lambda x:
                        x.last_message.sent_date_time.replace(tzinfo=UTC)
-                       if x.last_message else datetime.datetime.min.replace(tzinfo=UTC))
+                       if x.last_message else datetime.datetime.min.replace(tzinfo=UTC), reverse=True)
         return rooms
