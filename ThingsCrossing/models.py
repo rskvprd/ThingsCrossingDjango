@@ -142,7 +142,7 @@ class Message(models.Model):
         to="Room",
         on_delete=models.CASCADE,
     )
-    
+
     text = models.CharField(max_length=3000)
 
     sent_date_time = models.DateTimeField(auto_now=True)
@@ -162,7 +162,15 @@ class Room(models.Model):
         choices=TYPE_CHOICES,
         default=PRIVATE
     )
-    last_message_datetime = models.DateTimeField(auto_now=True)
+
+    last_message = models.ForeignKey(
+        to="Message",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="last_message"
+    )
+
     name = models.CharField(max_length=255, null=True, blank=True)
 
 

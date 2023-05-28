@@ -1,3 +1,6 @@
+import datetime
+
+from pytz import UTC
 from rest_framework import viewsets, status, generics
 from rest_framework.decorators import action, permission_classes
 from rest_framework.response import Response
@@ -128,10 +131,16 @@ class MessageViewSet(viewsets.ModelViewSet):
     def create(self, request, *args, **kwargs):
         room_id = request.data["room"]
         room = models.Room.objects.get(pk=room_id)
+
         text = request.data["text"]
+
         from_user = models.UserProfile.objects.get(user=request.user)
 
         message = models.Message.objects.create(from_user=from_user, room=room, text=text)
+
+        room.last_message = message
+        room.save()
+
         message_serializer = serializers.MessageSerializer(message)
 
         return Response(message_serializer.data)
@@ -167,7 +176,9 @@ class RoomViewSet(viewsets.ModelViewSet):
         my_participants = models.Participant.objects.filter(
             participant=current_user_profile)
         rooms = sorted(map(lambda p: p.room, my_participants),
-                       key=lambda x: x.last_message_datetime)
+                       key=lambda x:
+                       x.last_message.sent_date_time.replace(tzinfo=UTC)
+                       if x.last_message else datetime.datetime.min.replace(tzinfo=UTC))
         serialized_rooms = serializers.RoomSerializer(rooms, many=True)
 
         return Response(serialized_rooms.data)

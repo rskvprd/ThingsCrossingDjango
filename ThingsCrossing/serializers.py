@@ -7,7 +7,6 @@ class UserSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True)
 
     def create(self, validated_data):
-
         user = models.User.objects.create_user(
             username=validated_data['username'],
             password=validated_data['password'],
@@ -24,9 +23,6 @@ class UserSerializer(serializers.ModelSerializer):
         extra_kwargs = {
             'password': {'write_only': True}
         }
-
-
-
 
 
 class CharacteristicSerializer(serializers.ModelSerializer):
@@ -48,6 +44,7 @@ class PictureSerializer(serializers.ModelSerializer):
         model = models.Picture
         fields = ("url", "id")
 
+
 class UserProfileSerializer(serializers.ModelSerializer):
     user = UserSerializer(many=False)
     avatar = serializers.ImageField(use_url=True)
@@ -55,6 +52,7 @@ class UserProfileSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.UserProfile
         fields = "__all__"
+
 
 class CategorySerializer(serializers.ModelSerializer):
     class Meta:
@@ -168,14 +166,16 @@ class AdvertisementSerializer(serializers.ModelSerializer):
 
 class ParticipantSerializer(serializers.ModelSerializer):
     participant = UserProfileSerializer()
+
     class Meta:
         model = models.Participant
-        fields = ("__all__")
+        fields = "__all__"
 
 
 class RoomSerializer(serializers.ModelSerializer):
     participants = ParticipantSerializer(many=True)
+    last_message = MessageSerializer(many=False)
 
     class Meta:
         model = models.Room
-        fields = ("__all__")
+        fields = "__all__"
