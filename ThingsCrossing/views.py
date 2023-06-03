@@ -1,5 +1,6 @@
 import datetime
 
+from django.http import HttpResponse
 from pytz import UTC
 from rest_framework import viewsets, status, generics
 from rest_framework.decorators import action, permission_classes
@@ -34,6 +35,15 @@ class AdvertisementViewSet(viewsets.ModelViewSet):
             image_model.advertisement_id = advertisement_id
             image_model.save()
         return response
+
+    @action(detail=False, methods=['get'])
+    def my(self, request):
+        user: models.User = request.user
+        if user.is_anonymous:
+            return HttpResponse('Unauthorized', status=401)
+        user_profile = models.UserProfile.objects.get(user=user)
+        advertisements = models.Advertisement.objects.filter(user_profile=user_profile).order_by('updated_at')
+        return Response(serializers.AdvertisementSerializer(advertisements, many=True).data)
 
     @action(detail=False, methods=['get'])
     def search(self, request):
