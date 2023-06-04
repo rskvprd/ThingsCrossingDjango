@@ -1,5 +1,6 @@
 import datetime
 
+import django.db.models
 from django.http import HttpResponse
 from pytz import UTC
 from rest_framework import viewsets, status, generics
@@ -22,19 +23,31 @@ class AdvertisementViewSet(viewsets.ModelViewSet):
     permission_classes = (IsAuthenticatedOrReadOnly,)
 
     def create(self, request, *args, **kwargs):
-        images = json.loads(request.body)["images"]
+        images = request.data["images"]
 
         response = super().create(request, *args, **kwargs)
         response.data["images"] = images
         advertisement_id = response.data["id"]
+        self._add_images(images, advertisement_id)
 
+        return response
+
+    def update(self, request, *args, **kwargs):
+        images = request.data["images"]
+
+        response = super().update(request, *args, **kwargs)
+        response.data["images"] = images
+        advertisement_id = response.data["id"]
+        self._add_images(images, advertisement_id)
+        return response
+
+    def _add_images(self, images, advertisement_id):
         for image in images:
             image_url = image['url']
             relative_image_url = "/".join(image_url.split("/")[4:])
             image_model = models.Picture.objects.get(image=relative_image_url)
             image_model.advertisement_id = advertisement_id
             image_model.save()
-        return response
 
     @action(detail=False, methods=['get'])
     def my(self, request):

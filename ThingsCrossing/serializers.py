@@ -83,6 +83,32 @@ class AdvertisementSerializer(serializers.ModelSerializer):
     exchanges = ExchangeSerializer(many=True)
     user_profile = UserProfileSerializer(many=False, read_only=True)
 
+    def update(self, instance, validated_data):
+        prices = validated_data.pop("prices")
+        characteristics = validated_data.pop("characteristics")
+        categories = validated_data.pop("categories")
+        exchanges = validated_data.pop("exchanges")
+
+        models.Price.objects.filter(advertisement_id=instance.id).delete()
+        models.Price.objects.bulk_create([models.Price(**price, advertisement_id=instance.id) for price in prices])
+
+        models.Characteristic.objects.filter(advertisement_id=instance.id).delete()
+        models.Characteristic.objects.bulk_create(
+            [models.Characteristic(**characteristic, advertisement_id=instance.id) for characteristic in
+             characteristics])
+
+        models.Exchange.objects.filter(advertisement_id=instance.id).delete()
+        models.Exchange.objects.bulk_create([models.Exchange(**exchange, advertisement_id=instance.id) for exchange in
+                                             exchanges])
+
+        models.Category.objects.filter(advertisement_id=instance.id).delete()
+        models.Category.objects.bulk_create(
+            [models.Characteristic(**category, advertisement_id=instance.id) for category in
+             categories])
+
+        models.Advertisement.objects.filter(pk=instance.id).update(**validated_data)
+        return models.Advertisement.objects.get(pk=instance.id)
+
     def create(self, validated_data):
         prices = validated_data.pop("prices")
         characteristics = validated_data.pop("characteristics")
@@ -93,6 +119,7 @@ class AdvertisementSerializer(serializers.ModelSerializer):
 
         advertisement = models.Advertisement.objects.create(
             **validated_data, user_profile=profile)
+
         for category in categories:
             models.Category.objects.create(
                 advertisement=advertisement, **category)
@@ -109,55 +136,6 @@ class AdvertisementSerializer(serializers.ModelSerializer):
                 advertisement=advertisement, **exchange)
 
         return advertisement
-
-    def update(self, instance, validated_data):
-        prices = set(validated_data.pop("prices", []))
-        characteristics = set(validated_data.pop("characteristics", []))
-        categories = set(validated_data.pop("categories", []))
-        exchanges = set(validated_data.pop("exchanges", []))
-
-        old_prices = set(instance.prices)
-        old_characteristics = set(instance.characteristics)
-        old_categories = set(instance.categories)
-        old_exchanges = set(instance.exchanges)
-
-        removed_prices = old_prices - prices
-        removed_characteristics = old_characteristics - characteristics
-        removed_categories = old_categories - categories
-        removed_exchanges = old_exchanges - exchanges
-
-        # Delete removed records
-        for price in removed_prices:
-            price.delete()
-        for characteristic in removed_characteristics:
-            characteristic.delete()
-        for category in removed_categories:
-            category.delete()
-        for exchange in removed_exchanges:
-            exchange.delete()
-
-        new_prices = prices - old_prices
-        new_characteristics = characteristics - old_characteristics
-        new_categories = categories - old_categories
-        new_exchanges = exchanges - old_exchanges
-
-        # Add new records
-        for price in new_prices:
-            models.Price.objects.create(advertisement=instance, **price)
-        for category in new_categories:
-            models.Category.objects.create(
-                advertisement=instance, **categories)
-        for characteristic in new_characteristics:
-            models.Characteristic.objects.create(
-                advertisement=instance, **characteristic)
-        for exchange in new_exchanges:
-            models.Exchange.objects.create(advertisement=instance, **exchange)
-
-        # Update advertisement
-        advertisement = models.Advertisement.objects.filter(pk=instance.id)
-        advertisement.update(**validated_data)
-
-        return advertisement.get()
 
     class Meta:
         model = models.Advertisement
